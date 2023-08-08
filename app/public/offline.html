@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Retro Radio - Offline Connect</title>
+    <style>
+      
+      @font-face {
+        font-family: "Dunbrough";
+        src: url("/assets/fonts/Dunbrough.ttf") format("truetype");
+      }
+      
+      @font-face {
+        font-family: "Smythe";
+        src: url("/assets/fonts/Smythe-Regular.ttf") format("truetype");
+      }
+      
+      body {
+        font-family: "Smythe";
+        font-size: 32px;
+      }
+
+      .container {
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 10px;
+        padding-right: 10px;
+        margin-top: 50px;
+      }
+      .section-title, .loader_dot {
+        font-family: "Dunbrough", "BazarMedium";
+        text-transform: uppercase;
+        font-size: 72px;
+        text-align: center;
+        text-shadow: 1px 2px #FCFAF7, 3px 4px #484A4D;
+      }
+      .row {
+        box-sizing: content-box;
+      }
+      .centered {
+        text-align: center;
+      }
+      img.title-icon {
+        width: 90px;
+        vertical-align: bottom;
+        margin-right: 10px;
+      }
+      hr.dashed {
+        margin: 10px 0;
+        border-top: 1px dashed rgba(0,0,0,0.25);
+        border-bottom: 1px dashed rgba(255,255,255,0.25);
+        background-color: transparent;
+        z-index: 10;
+        width: 100%;
+        height: 0;
+      }
+      ol {
+        margin: 0px;
+      }
+      #timer {
+        font-size: 24px;
+        color: gray;
+      }
+      
+    </style>
+  </head>
+
+  <body id="start" style="background-color: #e6e1d0">
+    
+    <div class="container">
+      <div class="row centered">
+        <img class="title-icon" src="/assets/img//retro_radio_icon.png"></img>
+        <span class="section-title">Offline!</span>
+      </div>
+      <hr class="dashed"/>
+      
+      <div class="row" style="margin: 0 auto; width: 650px">
+      <ol>
+        <li>Connect to the Wifi Network "pi-radio" from another device.</li>
+        <li>If the device does not automatically take you to the wifi portal, open http://10.41.0.1</li>
+        <li>The page will show list of available WiFi networks. Select the one you want and enter the Wifi password if required.</li>
+        <li>Click Connect. If successful, the radio interface will load.</li>
+      </ol>
+      </div>
+      <hr class="dashed"/>
+      <div class="row centered">
+        <span id="timer"></span>
+    </div>
+    </div>
+    <!-- container -->
+  <script>
+    
+    // https://stackoverflow.com/a/20618517 - Countdown Timer
+    let intervalTimer;
+    
+    startTimer = function (duration, display) {
+        var start = Date.now(), diff, seconds;
+        timer =  function () {
+          // get the number of seconds that have elapsed since 
+          // startTimer() was called
+          diff = duration - (((Date.now() - start) / 1000) | 0);
+
+          // does the same job as parseInt truncates the float
+          seconds = (diff % 60) | 0;
+
+          seconds = seconds < 10 ? "0" + seconds : seconds;
+
+          display.textContent = `Checking if we are online in ${seconds} seconds ...`; 
+
+          if (diff <= 0) {
+            start = Date.now() + 1000;
+
+          }
+        };
+        // we don't want to wait a full second before the timer starts
+        timer();
+        intervalTimer = setInterval(timer, 1000);
+    }
+
+    window.onload = function () {
+      var duration = 30;
+      var display = document.getElementById("timer");
+      // this is usually not synced with the 30 seconds timer in the parent frame
+      startTimer(duration, display);
+    };
+  
+  </script>
+  </body>
+</html>
+

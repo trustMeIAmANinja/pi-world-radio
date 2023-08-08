@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Retro Pi World Radio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Goudy+Bookletter+1911&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/style.css"/>
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet"/>
+    <style>
+    </style>
+  </head>
+  <body>
+    <div id="crosshair" tabindex="-1">
+      <img
+        id="plus-icon"
+        src="/assets/img/plus.png"
+      />
+    </div>
+    <div id="map"></div>
+    <div class="player" id="player-info" tabindex="1">
+      <div class="left">
+        <div id="now-playing" tabindex="-1">Tuning...</div>
+        <div id="location-info" tabindex="-1">&nbsp;</div>
+      </div>
+      <div class="right" tabindex="-1">
+        <!-- Loaders from https://codepen.io/mjcabangon/pen/pKRaZQ -->
+        <div class="loader" id="playing-animation" style="display: none">
+          <div class="loader-inner line-scale-party">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </div>
+        <div class="loader" id="loading-animation" style="display: none">
+          <div class="loader-inner ball-clip-rotate-pulse">
+            <div></div>
+            <div></div>
+        </div>
+        </div>
+      </div>
+    </div>
+    <div id="channels_wrapper" tabindex="2">
+      <div id="channels_title" tabindex="-1"></div>
+      <div id="channels" tabindex="-1"></div>
+    </div>
+    
+    <div id="zoom_wrapper" class="icon_wrapper" tabindex="2">
+      <img id="zoom_icon" class="circle_icon" src="/assets/img/zoom-icon.png">
+    </div>
+    
+    <div id="volume_wrapper" class="icon_wrapper" tabindex="2">
+      
+      <img id="volume_icon_0" class="circle_icon" src="/assets/img/Speaker-Volume-0.png">
+      <img id="volume_icon_10" class="circle_icon" src="/assets/img/Speaker-Volume-10.png">
+      <img id="volume_icon_30" class="circle_icon" src="/assets/img/Speaker-Volume-30.png">
+      <img id="volume_icon_50" class="circle_icon" src="/assets/img/Speaker-Volume-50.png">
+      <img id="volume_icon_70" class="circle_icon" src="/assets/img/Speaker-Volume-70.png">
+      <img id="volume_icon_90" class="circle_icon" src="/assets/img/Speaker-Volume-90.png">
+      <img id="volume_icon_100" class="circle_icon" src="/assets/img/Speaker-Volume-100.png">
+      
+    </div>
+    
+    <div id="fav_wrapper" class="icon_wrapper" tabindex="2">
+      <img id="fav_icon" class="circle_icon" src="/assets/img/fav-icon.png">
+      <img id="fav_icon_filled" class="circle_icon" src="/assets/img/fav-icon-filled.png">
+    </div>
+    
+    <div id="fav_list_wrapper" class="icon_wrapper" tabindex="2">
+      <img id="fav_list_icon" class="circle_icon" src="/assets/img/fav-list-icon.png">
+    </div>
+    
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"
+      integrity="sha512-6+YN/9o9BWrk6wSfGxQGpt3EUK6XeHi6yeHV+TYD2GR0Sj/cggRpXr1BrAQf0as6XslxomMUxXp2vIl+fv0QRA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/player.js"></script>
+    <script src="/assets/js/map.js"></script>
+  </body>
+</html>

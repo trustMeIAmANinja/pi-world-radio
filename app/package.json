@@ -1,0 +1,29 @@
+{
+  "name": "pi-radioe",
+  "type": "commonjs",
+  "version": "0.0.1",
+  "description": "Backend for the Raspberry Pi World Radio. Inspired by https://hackaday.io/project/174631-raspberry-pi-world-radio",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@fastify/static": "^6.10.2",
+    "fastify": "^4.19.2",
+    "node-fetch": "^2.6.12",
+    "nodemon": "^3.0.1",
+    "onoff": "^6.0.3",
+    "sqlite3": "^5.1.6"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "repository": {
+    "url": "https://github.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "express"
+  ]
+}

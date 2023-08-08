@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Pi Retro Radio</title>
+    <style type="text/css">
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        background-color: black;
+      }
+
+      #content {
+        position: absolute;
+        left: 5px;
+        right: 0;
+        bottom: 0;
+        top: 5px;
+      }
+      #content-frame {
+        width: 780px;
+        height: 460px;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <iframe id="content-frame"
+        frameborder="0"
+        src="blank.html"
+      ></iframe>
+    </div>
+    <script>
+      const contentFrame = document.getElementById("content-frame");
+      var online = true;
+      var onlineTimeout;
+      
+      var checkOnline = function() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/checkOnline');
+        xhr.onload = function() {
+          var status = xhr.status;
+          if (status === 204) {
+            console.log("/checkOnline returned 204");
+            contentFrame.src = "/map.html";
+            online = true;
+          } else {
+            console.log("/checkOnline did not return 204. We are offline");
+            if (online) {
+              contentFrame.src = "/offline.html";
+              online = false;
+            }
+            setTimeout(checkOnline, 30000);
+          }
+        }
+        xhr.onloadend = function() {
+          if(xhr.status > 400) 
+            console.log("checkOnline: Error!");
+        }
+        xhr.onerror = function() {
+          console.log("checkOnline: Error!");
+        }
+        try {
+          xhr.send();
+        } catch (error) {
+            console.error(error);
+        }
+      }
+      
+      window.onload = (event) => {
+        console.log("page is fully loaded");
+        checkOnline();
+      };
+    </script>
+  </body>
+</html>
+

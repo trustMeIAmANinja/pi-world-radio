@@ -1,0 +1,339 @@
+html {
+  box-sizing: border-box;
+  overflow: scroll;
+  overflow-x: hidden;
+}
+::-webkit-scrollbar {
+    width: 0px;  /* Remove scrollbar space */
+    background: transparent;  /* Optional: just make scrollbar invisible */
+}
+
+*, *:after, *:before {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.left {
+  float: left;
+  width: calc(100% - 55px);
+  overflow: hidden;
+}
+
+.right {
+  float: right;
+  width: 40px;
+  padding: 10px 0 0 7px;
+}
+
+#map {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+}
+#crosshair {
+  display: block;
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+  z-index: 100;
+  text-align: center;
+}
+#crosshair > img {
+  width: 35px;
+  height: auto;
+  margin-left: -18px;
+  margin-top: -18px;
+  filter: invert(12%) sepia(71%) saturate(5102%) hue-rotate(331deg) brightness(93%) contrast(94%)
+}
+
+#player-info {
+  position: absolute;
+  margin-top: 10px;
+  margin-left: 10px;
+  padding: 5px 10px;
+  width: 55%;
+  max-width: 55%;
+  border: 0px solid #d3622d;
+  color: #ffffff;
+  background-color: rgb(149 130 130 / 75%);
+  border-radius: 10px;
+  font-family: 'Goudy Bookletter 1911', cursive, serif;
+  font-size: 24px;
+}
+
+#location-info {
+  font-size: 20px;
+  color: #ffd87e;
+}
+
+#channels_wrapper {
+  position: absolute;
+  top: 90px;
+  left: 10px;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+  width: 40%;
+  height: fit-content;
+}
+
+#channels_wrapper:focus, .icon_wrapper:focus, .icon_focus {
+  outline: none;
+  box-shadow: 0px 0px 7px 2px #c58d0b;
+}
+
+#channels_title {
+  padding: 5px 10px;
+  width: 100%;
+  font-family: 'Goudy Bookletter 1911', cursive, serif;
+  font-size: 24px;
+  color: #ffffff;
+  background-color: rgb(149 130 130 / 75%);
+  border-radius: 10px 10px 0 0;
+}
+
+#channels {
+  max-height: 200px;
+  padding: 0px;
+  width: 100%;
+  color: #222222;
+  background-color: rgb(255 255 255 / 90%);
+  border-radius: 0px 0px 10px 10px;
+  overflow: auto;
+  font-family: 'Goudy Bookletter 1911', cursive, serif;
+  font-size: 20px;
+}
+.channel {
+  padding: 3px 8px;
+}
+.channel:hover, .channel_highlight {
+  background-color: #ffe0b9;
+  border-radius: 4px;
+}
+.channel_title {
+  margin: 0;
+  padding: 0;
+}
+.channel_location {
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+.tower-icon {
+  padding-right: 5px;
+  height: 30px;
+  vertical-align: top;
+  filter: invert(1);
+}
+
+#now-playing {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.bi {
+  font-size: large;
+}
+
+.icon_wrapper {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  background: rgb(149 130 130 / 75%);
+  padding-top: 10px;
+  padding-left: 6px;
+}
+
+#volume_wrapper, #zoom_wrapper {
+  top: 10px;
+}
+
+#fav_wrapper, #fav_list_wrapper {
+  top: calc(100vh - 70px); 
+}
+
+#fav_wrapper {
+  left: calc(50vw - 70px);
+}
+
+#fav_list_wrapper {
+  left: calc(50vw + 10px);
+}
+
+#volume_wrapper {
+  left: calc(100vw - 80px);
+}
+
+#zoom_wrapper {
+  left: calc(100vw - 150px);
+}
+
+.circle_icon {
+  width: 45px;
+}
+
+.fav_flare {
+  color: #ff6347;
+  font-size: 14px;
+  float: right;
+}
+/*****************************
+The following CSS-only loading animations are from https://codepen.io/mjcabangon/pen/pKRaZQ
+******************************/
+
+@-webkit-keyframes line-scale-party {
+  0% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+  50% {
+    -webkit-transform: scale(0.5);
+    transform: scale(0.5);
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+}
+
+@keyframes line-scale-party {
+  0% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+  50% {
+    -webkit-transform: scale(0.5);
+    transform: scale(0.5);
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+}
+
+.line-scale-party > div:nth-child(1) {
+  -webkit-animation-delay: 0.48s;
+  animation-delay: 0.48s;
+  -webkit-animation-duration: 0.54s;
+  animation-duration: 0.54s;
+}
+
+.line-scale-party > div:nth-child(2) {
+  -webkit-animation-delay: -0.15s;
+  animation-delay: -0.15s;
+  -webkit-animation-duration: 1.15s;
+  animation-duration: 1.15s;
+}
+
+.line-scale-party > div:nth-child(3) {
+  -webkit-animation-delay: 0.04s;
+  animation-delay: 0.04s;
+  -webkit-animation-duration: 0.77s;
+  animation-duration: 0.77s;
+}
+
+.line-scale-party > div:nth-child(4) {
+  -webkit-animation-delay: -0.12s;
+  animation-delay: -0.12s;
+  -webkit-animation-duration: 0.61s;
+  animation-duration: 0.61s;
+}
+
+.line-scale-party > div {
+  background-color: #ffffff;
+  width: 4px;
+  height: 30px;
+  border-radius: 2px;
+  margin: 2px -1px 2px -1px;
+  padding: 0px;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  display: inline-block;
+  -webkit-animation-name: line-scale-party;
+  animation-name: line-scale-party;
+  -webkit-animation-iteration-count: infinite;
+  animation-iteration-count: infinite;
+  -webkit-animation-delay: 0;
+  animation-delay: 0;
+}
+
+@keyframes rotate {
+  0% {
+    -webkit-transform: rotate(0deg) scale(1);
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    -webkit-transform: rotate(180deg) scale(0.6);
+    transform: rotate(180deg) scale(0.6);
+  }
+  100% {
+    -webkit-transform: rotate(360deg) scale(1);
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes scale {
+  30% {
+    -webkit-transform: scale(0.3);
+    transform: scale(0.3);
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+}
+
+.ball-clip-rotate-pulse {
+  position: relative;
+}
+.ball-clip-rotate-pulse > div {
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  border-radius: 100%;
+}
+.ball-clip-rotate-pulse > div:first-child {
+  background: #ffffff;
+  height: 16px;
+  width: 16px;
+  top: 7px;
+  left: -7px;
+  -webkit-animation: scale 1s 0s cubic-bezier(0.09, 0.57, 0.49, 0.9) infinite;
+  animation: scale 1s 0s cubic-bezier(0.09, 0.57, 0.49, 0.9) infinite;
+}
+.ball-clip-rotate-pulse > div:last-child {
+  position: absolute;
+  border: 2px solid #ffffff;
+  width: 30px;
+  height: 30px;
+  left: -14px;
+  top: 0px;
+  background: transparent;
+  border: 2px solid;
+  border-color: #ffffff transparent #ffffff transparent;
+  -webkit-animation: rotate 1s 0s cubic-bezier(0.09, 0.57, 0.49, 0.9) infinite;
+  animation: rotate 1s 0s cubic-bezier(0.09, 0.57, 0.49, 0.9) infinite;
+  -webkit-animation-duration: 1s;
+  animation-duration: 1s;
+}
+
+/** Mapbox control adjust **/
+.mapboxgl-ctrl-bottom-left {
+  display: None
+}
+/** Don't be completely evil. Show copyright notice, but size it to the screen we have **/
+.mapboxgl-ctrl-bottom-right {
+  font-size: 85%;
+}
+/** hide the "Improve this map" link as it makes no sense in our context **/
+.mapbox-improve-map {
+  display: None;
+}
