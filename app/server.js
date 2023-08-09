@@ -108,6 +108,7 @@ fastify.post("/addfavorite", function (request, reply) {
     lat,
     (error) => {
       if (error) {
+        console.log(error);
         reply.send({ message: "error!" });
       } else {
         reply.send({ message: "success" });

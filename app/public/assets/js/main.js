@@ -84,7 +84,7 @@ var volIconIndex = function(volume) {
 var setVolumeIcon = function(volume) {
   index = volIconIndex(volume);
   volIcons.forEach(function (icon, i) {
-    if (i == index) icon.style.display = '';
+    if (i == index)  icon.style.display = ''; 
     else if (isVisible(icon)) icon.style.display = 'None';
   });
 };
@@ -128,6 +128,31 @@ var getJSON = function (url, callback) {
   xhr.send();
 }
 
+var doXhrRequest = function(requestType, url, data, callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.open(requestType, url, true);
+  if (data) {
+    xhr.responseType = "json";
+    xhr.setRequestHeader('Content-Type', 'application/json');
+  }
+  xhr.onload = function () {
+    var status = xhr.status;
+    if (status === 200) {
+      callback(null, xhr.response);
+    } else {
+      callback(status, xhr.response);
+    }
+  };
+  if (data) {
+    xhr.send(JSON.stringify(data));
+  } else {
+    xhr.send();
+  }
+}
+
+var postEmpty = function(url, callback) {
+  doXhrRequest('POST', url, undefined, callback);
+}
 
 // Post JSON data via XMLHttpRequest
 //
@@ -135,35 +160,11 @@ var getJSON = function (url, callback) {
 // @param {object}   data     - the object to send as JSON
 // @param {function} function - callback to execute with received response
 var postJSON = function(url, data, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", url, true);
-  xhr.responseType = "json";
-  xhr.setRequestHeader('Content-Type', 'application/json')
-  xhr.onload = function () {
-    var status = xhr.status;
-    if (status === 200) {
-      callback(null, xhr.response);
-    } else {
-      callback(status, xhr.response);
-    }
-  };
-  xhr.send(JSON.stringify(data));
+  doXhrRequest("POST", url, data, callback);
 }
 
 var deleteJSON = function (url, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.open("DELETE", url, true);
-  xhr.responseType = "json";
-  xhr.setRequestHeader('Content-Type', 'application/json')
-  xhr.onload = function () {
-    var status = xhr.status;
-    if (status === 200) {
-      callback(null, xhr.response);
-    } else {
-      callback(status, xhr.response);
-    }
-  };
-  xhr.send("{}");
+  doXhrRequest("DELETE", url, {}, callback);
 }
 
 // https://stackoverflow.com/a/34064434
@@ -214,9 +215,9 @@ var addChannelElement = function (item, channelId, locationName, lng, lat, showL
 //
 // @param {string}  locationId   - the radio garden location id
 // @param {string}  locationName - location na
-// @param {decimal} lat          - lattitude geo coordinate for the location 
-// @param {decimal} lng          - longitude geo coordinate for the location
-var getChannels = function (locationId, locationName, lat, lng) {
+// @param {decimal} lng          - lattitude geo coordinate for the location 
+// @param {decimal} lat          - longitude geo coordinate for the location
+var getChannels = function (locationId, locationName, lng, lat) {
   // channel_url = `https://radio.garden/api/ara/content/page/${locationId}/channels`
   let channel_url = `/channels/${locationId}`;
   getJSON(channel_url, function (status, response) {
@@ -300,7 +301,7 @@ var handleFavoriteClick = function () {
 var showFavorites = function () {
   getJSON("/favorites", function (status, response) {
     if (status != null) {
-      console.log("getChannels: Received HTTP Status: " + status);
+      console.log("/favorites: Received HTTP Status: " + status);
     } else {
       // console.log(response);
       channelsTitle.innerHTML = "";
@@ -462,7 +463,6 @@ var handleClick = function (event) {
   // if fav-icon or fav-list-icon is highlighted, send click to them
   f = document.activeElement;
   if (f == favWrapper || f == favListWrapper) {
-    // console.log("Click on Fav/Fav List");
     f.click();
     return
   }
@@ -548,6 +548,9 @@ window.addEventListener("keypress", function (event) {
     case "n":
       if (rapidClickCount >= 2) {
         console.log("RapidClick event triggered")
+        doXhrRequest("POST", '/displayToggle', null, function (status, response) {
+          console.log(`toggleDisplay: response status - ${status}`)
+        }); 
         rapidClickCount = 0;
       } else {
         // increment to track Rapid click              
@@ -575,7 +578,7 @@ favIconFilled.style.display = 'None';
 // At the start we will be in mapMode
 selectIcon(zoomIconWrapper);
 // Initialize
-setVolumeIcon(volume);
+setVolume(volume);
 // Attach event handler for the top right icons when selected.
 iconList.forEach(function (element) {
   element.addEventListener("selected", function (event) {

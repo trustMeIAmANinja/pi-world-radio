@@ -177,7 +177,9 @@ body {
 .circle_icon {
   width: 45px;
 }
-
+.volume_icon {
+  /* display: None; */
+}
 .fav_flare {
   color: #ff6347;
   font-size: 14px;

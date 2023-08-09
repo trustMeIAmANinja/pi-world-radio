@@ -1,6 +1,6 @@
 // Initialize Mapbox
 mapboxgl.accessToken =
-  "....REPLACE WITH ACCESS TOKEN ....";
+  "..................mEiOiJjbGs2Z21lcmExMnU2M3Ntcmp2OHRjeW5lIn0.fNANgrI1muCpqjAiIN40hA";
 const map = new mapboxgl.Map({
   container: "map",
   style: "mapbox://styles/wrecker/clkz7vn0000n301pb1mtjho13",
@@ -28,7 +28,7 @@ getChannelsAtCenter = function () {
   if (features.length > 0) {
     getChannels(features[0].properties.location_id,
                 features[0].properties.title + ", " + features[0].properties.country,
-	        features[0].properties.lat, features[0].properties.lng);
+	        features[0].properties.lng, features[0].properties.lat);
   } else {
     // titleDisplay.textContent = '';
     channels.textContent = "";
@@ -79,9 +79,8 @@ map.on("load", () => {
   });
 
   map.on("click", "locations", (e) => {
-    // console.log(e);
     getChannels(e.features[0].properties.location_id, e.features[0].properties.title + ", " + e.features[0].properties.country,
-                e.features[0].properties.lat, e.features[0].properties.lng);
+                e.features[0].properties.lng, e.features[0].properties.lat);
     selectTopChannel();
   });
 
