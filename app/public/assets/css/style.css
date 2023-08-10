@@ -65,6 +65,7 @@ body {
   border-radius: 10px;
   font-family: 'Goudy Bookletter 1911', cursive, serif;
   font-size: 24px;
+  top: 0;
 }
 
 #location-info {

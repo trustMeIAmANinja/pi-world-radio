@@ -13,8 +13,21 @@ map.keyboard.disable();
 
 // Global to hold timer var
 var getChannelsDelayTimer;
+// Current Center
+var currentCenter = map.getCenter();
+// Current LocationId
+var currentLocationId = "";
 
-getChannelsAtCenter = function () {
+var roundTo4Decimals = function (decimal) {
+  return Math.round(decimal * 10000) / 10000;
+}
+
+// Returns true if c1 and c2 are significantly different
+var compareCoordinates = function (c1, c2) {
+  return roundTo4Decimals(c1.lng) != roundTo4Decimals(c2.lng) || roundTo4Decimals(c1.lat) != roundTo4Decimals(c2.lat)
+}
+
+var getChannelsAtCenter = function () {
   width = 20;
   height = 20;
   const point = map.project(map.getCenter());
@@ -26,17 +39,17 @@ getChannelsAtCenter = function () {
     { layers: ["locations"] }
   );
   if (features.length > 0) {
-    getChannels(features[0].properties.location_id,
-                features[0].properties.title + ", " + features[0].properties.country,
-	        features[0].properties.lng, features[0].properties.lat);
+    if (currentLocationId != features[0].properties.location_id) {
+      getChannels(features[0].properties.location_id,
+                  features[0].properties.title + ", " + features[0].properties.country,
+	                features[0].properties.lng, features[0].properties.lat);
+      currentLocationId = features[0].properties.location_id;
+    }
   } else {
-    // titleDisplay.textContent = '';
-    channels.textContent = "";
-    channelsTitle.innerHTML = "";
-    channelsWrapper.style.display = "none";
-    channelListElems = [];
-    currentChannelElem = null;
+    clearChannelsList();
+    currentLocationId = "";
   }
+  currentCenter = map.getCenter();
 }
 
 // When the map loads, add the radio.garden data
@@ -89,9 +102,15 @@ map.on("load", () => {
       ignoreMapMoveOnce = false;
       return;
     }
-    clearTimeout(getChannelsDelayTimer);
-    currentZoom = map.getZoom()
-    if (currentZoom < 5.0) return;
-    getChannelsDelayTimer = setTimeout(getChannelsAtCenter, 500);
+    console.log(map.getCenter());
+    // check if map center has moved significantly
+    // typically zoom-in/out will not change center
+    if (compareCoordinates(currentCenter, map.getCenter())) {    
+      clearTimeout(getChannelsDelayTimer);
+      currentZoom = map.getZoom()
+      if (currentZoom >= 5.0) { 
+        getChannelsDelayTimer = setTimeout(getChannelsAtCenter, 500);
+      }
+    }
   });    
 });

@@ -17,9 +17,9 @@ const favListWrapper = document.getElementById("fav_list_wrapper");
 const favIcon = document.getElementById("fav_icon");
 const favIconFilled = document.getElementById("fav_icon_filled");
 
-const iconList = new Array(zoomIconWrapper, volumeIconWrapper);
+const topRightIconList = new Array(zoomIconWrapper, volumeIconWrapper);
 
-var iconSelected = 0;
+var topRightIconSelected = 0;
 var rapidClickCount = 0;
 
 channelsWrapper.style.display = "none";
@@ -209,6 +209,14 @@ var addChannelElement = function (item, channelId, locationName, lng, lat, showL
   channels.appendChild(channel);        
 }
 
+var clearChannelsList = function () {
+  channels.textContent = "";
+  channelsTitle.innerHTML = "";
+  channelsWrapper.style.display = "none";
+  channelListElems = [];
+  currentChannelElem = null;
+}
+
 // getChannels Get the list of radio streams for the location.
 //             the geo co-ordinates are only needed to attach the properties to the
 //             DOM element for other actions
@@ -242,8 +250,47 @@ var getChannels = function (locationId, locationName, lng, lat) {
       });
     }
   });
+}
+
+// selectIcon - simple helper to highlight an icon and notify its selected
+//
+// @param {DOMElement} element - the element to highlight
+var selectIcon = function (element) {
+  element.classList.add("icon_focus");
+  element.dispatchEvent(new Event("selected"));
 };
 
+// toggleTopRightSelectedIcon - switch focus between the icons in the top right.
+//
+// @param {DOMElement} element - if element is given, instead of toggle set focus 
+//                               to this element
+var toggleTopRightSelectedIcon = function (element) {
+  topRightIconList.forEach(function (icon) {
+    icon.classList.remove("icon_focus")
+  });
+
+  if (element === undefined) {
+    if (topRightIconSelected < topRightIconList.length - 1) {
+      topRightIconSelected += 1;
+    } else {
+      topRightIconSelected = 0;
+    }
+    selectIcon(topRightIconList[topRightIconSelected]);
+  } else {
+    selectIcon(element);
+  }
+}
+
+var restoreTopRightSelectedIcon = function () {
+  topRightIconList.forEach(function (icon) {
+    icon.classList.remove("icon_focus")
+  });
+  selectIcon(topRightIconList[topRightIconSelected]);
+}
+
+// toggleFavIcon - toggle the state of the Fav icon
+//
+// @param {bool} isFavorite - the expected state of the fav icon
 var toggleFavIcon = function(isFavorite) {
   if (isFavorite) {
     favIcon.style.display = 'None';
@@ -304,6 +351,7 @@ var showFavorites = function () {
       console.log("/favorites: Received HTTP Status: " + status);
     } else {
       // console.log(response);
+      currentLocationId = "";
       channelsTitle.innerHTML = "";
       channels.textContent = "";
       channelsWrapper.style.display = "";
@@ -313,6 +361,8 @@ var showFavorites = function () {
         item.is_favorite = 1;
         addChannelElement(item, item.channelId, item.location, item.lng, item.lat, true, true);
       });
+      navDropFocus();
+      navTakeFocus();
     }
   });
 }
@@ -326,12 +376,6 @@ var selectTopChannel = function () {
     currentChannelIndex = 0;
     changeHighlightedChannel();
   } 
-}
-
-// selectIcon - simple helper to highlight the icons in the top right and notify its selected
-var selectIcon = function (element) {
-  element.classList.add("icon_focus");
-  element.dispatchEvent(new Event("selected"));
 }
 
 
@@ -537,9 +581,12 @@ window.addEventListener("keypress", function (event) {
       if (mapMode) {
         navDropFocus();
         crosshair.style.display = 'block';
+        restoreTopRightSelectedIcon();
       } else {
         navTakeFocus();
         crosshair.style.display = 'none';
+        // in nav mode, High/Low only controls volume
+        toggleTopRightSelectedIcon(volumeIconWrapper);
       }
       break;
     case "p":
@@ -555,17 +602,7 @@ window.addEventListener("keypress", function (event) {
       } else {
         // increment to track Rapid click              
         incrementClickCount();
-
-        iconList.forEach(function (icon) {
-          icon.classList.remove("icon_focus")
-        });
-
-        if (iconSelected < iconList.length - 1) {
-          iconSelected += 1;
-        } else {
-          iconSelected = 0;
-        }
-        selectIcon(iconList[iconSelected]);
+        if (mapMode) toggleTopRightSelectedIcon();
       }
       break;
   }
@@ -580,7 +617,7 @@ selectIcon(zoomIconWrapper);
 // Initialize
 setVolume(volume);
 // Attach event handler for the top right icons when selected.
-iconList.forEach(function (element) {
+topRightIconList.forEach(function (element) {
   element.addEventListener("selected", function (event) {
     if (event.target == zoomIconWrapper)
       zoomMode = true;
