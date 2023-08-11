@@ -1,4 +1,4 @@
-![logo](assets/img/radio-icon-big.png)
+![logo](assets/img/pi-plus-radio.png)
 
 # Raspberry Pi World Radio
 

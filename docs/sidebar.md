@@ -1,2 +1,3 @@
 <!-- markdownlint-disable-next-line first-line-heading -->
-- [Home](README)
+- [Home](home)
+- [Bill of Materials](bom)

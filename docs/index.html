@@ -4,8 +4,13 @@
    <meta charset="utf-8">
    <meta http-equiv="X-UA-Compatible" content="IE=edge">
    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover">
-   <meta name="description" content="Pi World Radio Docs">
+   <meta name="description" content="Raspberry Pi World Radio Docs">
    <title>Pi World Radio Docs</title>
+
+   <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
+   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-31x32.png">
+   <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
+   <link rel="shortcut icon" href="assets/img/favicon.ico">
 
    <link rel="preconnect" href="https://fonts.googleapis.com">
    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,17 +26,37 @@
        --base-font-family     : "PT Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
        --base-font-size: 17px;
        --content-max-width: 70em;
+       --cover-background-image: linear-gradient(132deg, rgb(249, 202, 120) 0.00%, rgb(212, 206, 169) 37.06%, rgb(212, 206, 169) 62.55%, rgb(249, 202, 120) 100.00%);
+       --cover-heading-color: #000;
+
+       --heading-h2-padding: 0;
+       --table-cell-padding: 0.3em 0.4em;
      }
 
-    hr.divider { 
-      border: 0; 
-      height: 1px; 
-      background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
-      background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
-      background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
-      background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0); 
+    table thead tr {
+      background: #808080;
     }
 
+    .markdown-section th {
+      color: #eee;
+    }
+
+
+     hr.divider { 
+       border: 0; 
+       height: 1px; 
+       background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+       background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+       background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+       background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0); 
+     }
+
+
+    @media (prefers-color-scheme: dark) {
+      table thead tr {
+        background: #242424;
+      }
+    }
    </style>
 </head>
 <body>
@@ -42,10 +67,11 @@
    window.$docsify = {
       search: 'auto',
       coverpage: true,
+      homepage: 'home.md',
       loadSidebar: 'sidebar.md',
       auto2top   : true,
       maxLevel   : 3,
-      subMaxLevel: 3,
+      subMaxLevel: 2,
 
       name: 'Pi World Radio',
       search: {
@@ -62,7 +88,7 @@
           var footer = [
             '<footer style="text-align: center;margin-top: 50px;">',
             '<hr class="divider"/>',
-            '<span> Pi World Radio  &copy; 2023 </span>',
+            '<span>Built with <a href="https://docsify.js.org/" target="_blank">Docsify</a></span> | <span> Pi World Radio  &copy; 2023 </span>',
             '</footer>'
           ].join('');
 
