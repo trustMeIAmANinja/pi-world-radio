@@ -27,7 +27,7 @@ All the prices listed here are what I paid for them (before any taxes/shipping) 
 
 ### Notes
 
- * Heatsink: The Raspberry Pi4 tends to a little hotter than previous boards. During development
+ * Heatsink: The Raspberry Pi4 tends to run a little hotter than previous boards. During development
    I saw idle temp of around 52&deg;C and it would rise once I started running chromium and playing
    audio. Since the board was going to be in an enclosed box, I decided to put a good quality
    heatsink to help with cooling. Using quality thermal compound and the head-sink, I immediately

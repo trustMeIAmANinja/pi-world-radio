@@ -12,11 +12,13 @@ from evdev import ecodes as e
 
 required_devices = [
         'platform-rotary@2-event', 
-        'platform-rotary@e-event',
-        'platform-rotary@18-event',
+        'platform-rotary@7-event',
+        'platform-rotary@a-event',
+        'platform-rotary@11-event',
         'platform-button@4-event',
-        'platform-button@7-event',
-        'platform-button@11-event'
+        'platform-button@b-event',
+        'platform-button@16-event',
+        'platform-button@18-event'
     ]
 
 def is_device(fn):
@@ -85,18 +87,19 @@ if __name__ == '__main__':
     check_devices()
     # Setup devices
     cap = {
-        e.EV_KEY : [e.KEY_H, e.KEY_L, e.KEY_LEFT, e.KEY_RIGHT, e.KEY_UP, e.KEY_DOWN],
+        e.EV_KEY : [e.KEY_H, e.KEY_L, e.KEY_I, e.KEY_O, e.KEY_LEFT, e.KEY_RIGHT, e.KEY_UP, e.KEY_DOWN],
     }
     ui = evdev.UInput(cap, name='virtual-keyboard', version=0x3)
     
-    r1 = RotaryInputDevice('/dev/input/by-path/platform-rotary@2-event', e.KEY_RIGHT, e.KEY_LEFT, ui)
-    r2 = RotaryInputDevice('/dev/input/by-path/platform-rotary@e-event', e.KEY_UP, e.KEY_DOWN, ui)
-    r3 = RotaryInputDevice('/dev/input/by-path/platform-rotary@18-event', e.KEY_H, e.KEY_L, ui)
-
+    r1 = RotaryInputDevice('/dev/input/by-path/platform-rotary@a-event', e.KEY_RIGHT, e.KEY_LEFT, ui)
+    r2 = RotaryInputDevice('/dev/input/by-path/platform-rotary@7-event', e.KEY_UP, e.KEY_DOWN, ui)
+    r3 = RotaryInputDevice('/dev/input/by-path/platform-rotary@11-event', e.KEY_I, e.KEY_O, ui)
+    r4 = RotaryInputDevice('/dev/input/by-path/platform-rotary@2-event', e.KEY_H, e.KEY_L, ui)
     devices = {
         r1.fd: r1,
         r2.fd: r2,
         r3.fd: r3,
+        r4.fd: r4
     }
    
     # Loop forever
@@ -107,5 +110,5 @@ if __name__ == '__main__':
             for event in devices[fd].read():
                 event = evdev.util.categorize(event)
                 if isinstance(event, evdev.events.RelEvent):
-                    # print("FD: {0} Value: {1}".format(fd, event.event.value))
+                    print("FD: {0} Value: {1}".format(fd, event.event.value))
                     devices[fd].emit_event(event.event.value)

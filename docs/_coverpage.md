@@ -2,4 +2,4 @@
 
 # Raspberry Pi World Radio
 
-[Getting Started](#headline)
+[Read the Docs](#introduction)

@@ -11,7 +11,7 @@ const sqlite3 = require("sqlite3").verbose();
 const Gpio = require('onoff').Gpio;
 
 // GPIO Pin used to trigger the relay
-const trigger = new Gpio(6, 'high');
+const trigger = new Gpio(14, 'low');
 
 // init sqlite db
 const dbFile = "./data/sqlite.db";
@@ -164,12 +164,21 @@ fastify.get("/checkOnline", function (request, reply) {
 
 fastify.post("/displayToggle", function (request, reply) {
   trigger.writeSync(trigger.readSync() ^ 1);
-  reply.send({ message: "success" });
+  reply.send({ message: "success", displayState: trigger.readSync() ^ 1});
 });
 
+fastify.post("/displayOn", function (request, reply) {
+  trigger.writeSync(0);
+  reply.send({ message: "success", displayState: trigger.readSync() ^ 1});
+});
+
+fastify.post("/displayOff", function (request, reply) {
+  trigger.writeSync(1);
+  reply.send({ message: "success", displayState: trigger.readSync() ^ 1});
+});
 
 // Run the server and report out to the logs
-fastify.listen({port: 3000, host: "0.0.0.0"}, (err, address) => {
+fastify.listen({port: 8001, host: "0.0.0.0"}, (err, address) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);

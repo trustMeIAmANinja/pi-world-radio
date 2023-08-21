@@ -1,3 +1,6 @@
+///////////////////////////////////////////////////////////////////////////
+// main.js
+
 var player = null;
 // const titleDisplay = document.getElementById('title');
 const channelsWrapper = document.getElementById("channels_wrapper");
@@ -10,17 +13,19 @@ const locationDisplay = document.getElementById("location-info");
 const playingAnimation = document.getElementById("playing-animation");
 const loadingAnimation = document.getElementById("loading-animation");
 const volumeIconWrapper = document.getElementById("volume_wrapper");
-const zoomIconWrapper = document.getElementById("zoom_wrapper");
 
 const favWrapper = document.getElementById("fav_wrapper");
 const favListWrapper = document.getElementById("fav_list_wrapper");
 const favIcon = document.getElementById("fav_icon");
 const favIconFilled = document.getElementById("fav_icon_filled");
 
-const topRightIconList = new Array(zoomIconWrapper, volumeIconWrapper);
-
-var topRightIconSelected = 0;
 var rapidClickCount = 0;
+var idleTime = 0;
+// 1 => screen is on. 0 => screen is off.
+var displayState = 0;
+
+// Increment the idle time counter every minute.
+var idleInterval = setInterval(function() { incrementIdleTime() }, 60 * 1000); // 1 minute
 
 channelsWrapper.style.display = "none";
 playingAnimation.style.display = "none";
@@ -37,10 +42,13 @@ var volume = 50;
 var mapMode = true;
 var ignoreMapMoveOnce = false;
 
-// Mode toggle for zoom/volume
-var zoomMode = true;
-
 var isFav = false;
+
+var getChannelsDelayTimer;
+// Current Center
+var currentCenter = {lng: -53, lat: 35};
+// Current LocationId
+var currentLocationId = "";
 
 // Elements to circle through for key 'q'
 const navElements = new Array(
@@ -59,6 +67,7 @@ const volIcons = new Array(
   document.getElementById("volume_icon_100")
 );
 
+// volIconIndex - Helper to get the volume icon for a volume level
 var volIconIndex = function(volume) {
   index = 0
   volume = volume;
@@ -76,6 +85,10 @@ var volIconIndex = function(volume) {
     index = 6
   }
   return index
+}
+
+var roundTo4Decimals = function (decimal) {
+  return Math.round(decimal * 10000) / 10000;
 }
 
 // setVolumeIcon - Set the correct icon for the given volume
@@ -109,30 +122,12 @@ var isVisible = function (e) {
   return !!( e.offsetWidth || e.offsetHeight || e.getClientRects().length );
 }
 
-// Get JSON data via XMLHttpRequest
-//
-// @param {string}   url      - the url to read JSON data from
-// @param {function} function - callback to execute with received data
-var getJSON = function (url, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", url, true);
-  xhr.responseType = "json";
-  xhr.onload = function () {
-    var status = xhr.status;
-    if (status === 200) {
-      callback(null, xhr.response);
-    } else {
-      callback(status, xhr.response);
-    }
-  };
-  xhr.send();
-}
-
+// doXhrRequest - 
 var doXhrRequest = function(requestType, url, data, callback) {
   var xhr = new XMLHttpRequest();
   xhr.open(requestType, url, true);
+  if (requestType == "GET") xhr.responseType = "json";
   if (data) {
-    xhr.responseType = "json";
     xhr.setRequestHeader('Content-Type', 'application/json');
   }
   xhr.onload = function () {
@@ -150,11 +145,23 @@ var doXhrRequest = function(requestType, url, data, callback) {
   }
 }
 
+// getJSON - Get JSON data via XMLHttpRequest
+//
+// @param {string}   url      - the url to read JSON data from
+// @param {function} function - callback to execute with received data
+var getJSON = function (url, callback) {
+  doXhrRequest('GET', url, undefined, callback);
+}
+
+// postEmpty - POST Request without sending any data
+//
+// @param {string}   url      - the url to read JSON data from
+// @param {function} function - callback to execute with received data
 var postEmpty = function(url, callback) {
   doXhrRequest('POST', url, undefined, callback);
 }
 
-// Post JSON data via XMLHttpRequest
+// postJSON - Post reqeust with JSON data 
 //
 // @param {string}   url      - the url to post JSON data to
 // @param {object}   data     - the object to send as JSON
@@ -163,8 +170,37 @@ var postJSON = function(url, data, callback) {
   doXhrRequest("POST", url, data, callback);
 }
 
+// deleteJSON - HTTP Delete with empty data
+//
+// @param {string}   url      - the url to read JSON data from
+// @param {function} function - callback to execute with received data
 var deleteJSON = function (url, callback) {
   doXhrRequest("DELETE", url, {}, callback);
+}
+
+// displayOff - send POST to /displayOff
+var displayOff = function() {
+  doXhrRequest("POST", '/displayOff', null, function (status, response) {
+    // console.log(`displayOff: response status - ${status}`)
+    data = JSON.parse(response);
+    displayState = data.displayState;
+  });
+}
+
+// displayOn - send POST to /displayOn
+var displayOn = function() {
+  doXhrRequest("POST", '/displayOn', null, function (status, response) {
+    // console.log(`displayOn: response status - ${status}`)
+    data = JSON.parse(response);
+    displayState = data.displayState;
+  });
+}
+
+// incrementIdleTime - tick up the idle counter by 1
+var incrementIdleTime = function () {
+  idleTime++;
+  console.log(`Idle for ${idleTime} minutes`);
+  if (idleTime >= 5 && displayState == 1) displayOff();
 }
 
 // https://stackoverflow.com/a/34064434
@@ -173,6 +209,17 @@ function htmlDecode(input) {
   return doc.documentElement.textContent;
 }
 
+// addChannelElement - Add a channel to channels list.
+//                     The geo co-ordinates are only needed to attach the properties to the
+//                     DOM element for other actions
+//
+// @param {object}  item          - oject with channel details
+// @param {object}  channelId     - the id for the channel   
+// @param {string}  locationName  - location name
+// @param {decimal} lng           - lattitude geo coordinate for the location
+// @param {decimal} lat           - longitude geo coordinate for the locationo
+// @param {boolean} showLocation  - if true, show the location name under the channel name
+// @param {boolean} flyToOnSelect - set the attribute. actually used by other feature 
 var addChannelElement = function (item, channelId, locationName, lng, lat, showLocation=false, flyToOnSelect=false) {
   // Channel Name <div>
   channel = document.createElement("div");
@@ -209,6 +256,7 @@ var addChannelElement = function (item, channelId, locationName, lng, lat, showL
   channels.appendChild(channel);        
 }
 
+// clearChannelsList - clear and hide the channels list
 var clearChannelsList = function () {
   channels.textContent = "";
   channelsTitle.innerHTML = "";
@@ -260,34 +308,6 @@ var selectIcon = function (element) {
   element.dispatchEvent(new Event("selected"));
 };
 
-// toggleTopRightSelectedIcon - switch focus between the icons in the top right.
-//
-// @param {DOMElement} element - if element is given, instead of toggle set focus 
-//                               to this element
-var toggleTopRightSelectedIcon = function (element) {
-  topRightIconList.forEach(function (icon) {
-    icon.classList.remove("icon_focus")
-  });
-
-  if (element === undefined) {
-    if (topRightIconSelected < topRightIconList.length - 1) {
-      topRightIconSelected += 1;
-    } else {
-      topRightIconSelected = 0;
-    }
-    selectIcon(topRightIconList[topRightIconSelected]);
-  } else {
-    selectIcon(element);
-  }
-}
-
-var restoreTopRightSelectedIcon = function () {
-  topRightIconList.forEach(function (icon) {
-    icon.classList.remove("icon_focus")
-  });
-  selectIcon(topRightIconList[topRightIconSelected]);
-}
-
 // toggleFavIcon - toggle the state of the Fav icon
 //
 // @param {bool} isFavorite - the expected state of the fav icon
@@ -299,7 +319,6 @@ var toggleFavIcon = function(isFavorite) {
     favIcon.style.display = ''
     favIconFilled.style.display = 'None'
   }
-
 }
 
 // addToFavorites - Add the currently playing channel to favorites
@@ -323,6 +342,7 @@ var addToFavorites = function () {
   }
 }
 
+// removeFromFavorites - Remove the currentl playing channel from favorites.
 var removeFromFavorites = function () {
   if (player != null) {
     deleteJSON(`/favorite/${player.channelId}`, function (status, response) {
@@ -336,6 +356,7 @@ var removeFromFavorites = function () {
   }
 }
 
+// handleFavoriteClick - Handle click on the favorite icon.
 var handleFavoriteClick = function () {
   if (player != null) {
     if (player.isFav > 0)
@@ -345,6 +366,8 @@ var handleFavoriteClick = function () {
   }
 }
 
+// showFavorites - Get the list of favorites and display them in the
+//                 channel list sorted by distance
 var showFavorites = function () {
   getJSON("/favorites", function (status, response) {
     if (status != null) {
@@ -359,6 +382,10 @@ var showFavorites = function () {
 
       response.forEach(function (item) {
         item.is_favorite = 1;
+        item.distanceFromCenter = distanceBetween(map.getCenter(), item)
+      });
+      response.sort((f1, f2) => { return f1.distanceFromCenter - f2.distanceFromCenter })
+      response.forEach(function (item) {
         addChannelElement(item, item.channelId, item.location, item.lng, item.lat, true, true);
       });
       navDropFocus();
@@ -485,20 +512,6 @@ var handleLeftRight = function(event, right) {
   }
 }
 
-// handleHighLow - handle the event from the high/low rotary
-//                 if high is true, either volume is raised or map is zoomed it.
-//                 if high is false, volume is lowered or map is zoomed out.
-//
-// @param {event} event - the DOM event object that was triggered
-// @param {bool}  high  - true if the event was go higher, otherwise go lower 
-var handleHighLow = function (event, high) {
-  if (!mapMode || !zoomMode) {
-    // Volume control
-    setVolume(high);
-  } else {
-    zoomInOut(high);
-  }
-}
 
 // handleClick - handle the click event and dispatch it to the appropriate element
 //
@@ -525,7 +538,7 @@ var handleClick = function (event) {
 //
 // @param {bool} zoomIn true: zoom in. false: zoom out.
 var zoomInOut = function (zoomIn) {
-  if (mapMode && zoomMode) {
+  if (mapMode) {
     currentZoom = map.getZoom();
     if (zoomIn) 
       map.easeTo({zoom: currentZoom + 0.75, speed: 0.5, duration: 1000})
@@ -546,6 +559,13 @@ var incrementClickCount = function () {
 
 // Keyboard events triggered by the rotary encoders
 window.addEventListener("keydown", function (event) {
+  // ignore key 'x' since its being generated by xdotool
+  if (event.key != "x") {
+    idleTime = 0;
+    if (displayState == 0) displayOn();
+  }
+
+
   switch (event.key) {
     case "ArrowLeft":
       handleLeftRight(event, false);
@@ -560,10 +580,51 @@ window.addEventListener("keydown", function (event) {
       handleUpDown(event, false);
       break;
     case "h":
-      handleHighLow(event, true);
+      setVolume(true);
       break;
     case "l":
-      handleHighLow(event, false);
+      setVolume(false);
+      break;
+    case "i":
+      zoomInOut(true);
+      break
+    case "o":
+      zoomInOut(false);
+      break;
+    case "q":
+      mapMode = !mapMode;
+      if (mapMode) {
+        navDropFocus();
+        crosshair.style.display = 'block';
+        // restoreTopRightSelectedIcon();
+      } else {
+        navTakeFocus();
+        crosshair.style.display = 'none';
+        // in nav mode, High/Low only controls volume
+        // toggleTopRightSelectedIcon(volumeIconWrapper);
+      }
+      break;
+    case "p":
+      handleClick(event);
+      break;
+    case "n":
+      clearChannelsList();
+      // reset currentCenter
+      currentCenter = {lng: -53, lat: 35};
+      currentLocationId = "";
+      break;
+    case "m":
+      if (rapidClickCount >= 2) {
+        console.log("RapidClick event triggered")
+        doXhrRequest("POST", '/displayToggle', null, function (status, response) {
+          data = JSON.parse(response);
+          displayState = data.displayState;
+        });
+        rapidClickCount = 0;
+      } else {
+        // increment to track Rapid click
+        incrementClickCount();
+      }
       break;
     case "t":
       // Testing only event.
@@ -572,60 +633,224 @@ window.addEventListener("keydown", function (event) {
   }
 });
 
-// Keyboard events triggered by the push button on the rotary encoder
-window.addEventListener("keypress", function (event) {
-  currentZoom = map.getZoom();
-  switch (event.key) {
-    case "q":
-      mapMode = !mapMode;
-      if (mapMode) {
-        navDropFocus();
-        crosshair.style.display = 'block';
-        restoreTopRightSelectedIcon();
-      } else {
-        navTakeFocus();
-        crosshair.style.display = 'none';
-        // in nav mode, High/Low only controls volume
-        toggleTopRightSelectedIcon(volumeIconWrapper);
-      }
-      break;
-    case "p":
-      handleClick(event);
-      break;
-    case "n":
-      if (rapidClickCount >= 2) {
-        console.log("RapidClick event triggered")
-        doXhrRequest("POST", '/displayToggle', null, function (status, response) {
-          console.log(`toggleDisplay: response status - ${status}`)
-        }); 
-        rapidClickCount = 0;
-      } else {
-        // increment to track Rapid click              
-        incrementClickCount();
-        if (mapMode) toggleTopRightSelectedIcon();
-      }
-      break;
+///////////////////////////////////////////////////////////////////////////////////
+//
+// Initialize Mapbox
+
+mapboxgl.accessToken = ".................................................................."
+const map = new mapboxgl.Map({
+  container: "map",
+  style: "mapbox://styles/wrecker/clkz7vn0000n301pb1mtjho13",
+  center: [-53, 35.2],
+  zoom: 2.2,
+  minZoom: 2.05,
+  maxZoom: 12,
+});
+map.keyboard.disable();
+
+// https://stackoverflow.com/a/18883819
+// This function takes in latitude and longitude of two location and returns the distance between them as the crow flies (in km)
+distanceBetween = function (c1, c2) {
+  var R = 6371; // km
+  var dLat = toRad(c2.lat - c1.lat);
+  var dLon = toRad(c2.lng - c1.lng);
+  var lat1 = toRad(c1.lat);
+  var lat2 = toRad(c2.lat);
+
+  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  var d = R * c;
+  return d;
+}
+
+// Converts numeric degrees to radians
+toRad = function (value) {
+    return value * Math.PI / 180;
+}
+
+// Returns true if c1 and c2 are significantly different
+var compareCoordinates = function (c1, c2) {
+  return roundTo4Decimals(c1.lng) != roundTo4Decimals(c2.lng) || roundTo4Decimals(c1.lat) != roundTo4Decimals(c2.lat)
+}
+
+var getChannelsAtCenter = function () {
+  width = 20;
+  height = 20;
+  const point = map.project(map.getCenter());
+  const features = map.queryRenderedFeatures(
+    [
+      [point.x - width / 2, point.y - height / 2],
+      [point.x + width / 2, point.y + height / 2],
+    ],
+    { layers: ["locations"] }
+  );
+  if (features.length > 0) {
+    if (currentLocationId != features[0].properties.location_id) {
+      getChannels(features[0].properties.location_id,
+                  features[0].properties.title + ", " + features[0].properties.country,
+	                features[0].properties.lng, features[0].properties.lat);
+      currentLocationId = features[0].properties.location_id;
+    }
+  } else {
+    clearChannelsList();
+    currentLocationId = "";
   }
+  currentCenter = map.getCenter();
+}
+
+// When the map loads, add the radio.garden data
+map.on("load", () => {
+  map.addSource("locations", {
+    type: "geojson",
+    data: "/assets/js/geo_json.min.json",
+    generateId: true, // This ensures that all features have unique IDs
+  });
+
+  // Add locations as a layer and style it
+  map.addLayer({
+    id: "locations",
+    type: "circle",
+    source: "locations",
+    paint: {
+      // The feature-state dependent circle-radius expression will render
+      // the radius size according to its magnitude when
+      // a feature's hover state is set to true
+      //'circle-radius': 5,
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        // zoom is 5 (or less) -> circle radius will be 1px
+        5,
+        1,
+        // zoom is 20 (or greater) -> circle radius will be 10px
+        20,
+        40,
+      ],
+      "circle-stroke-color": "#d32da0",
+      "circle-stroke-width": 1,
+      // The feature-state dependent circle-color expression will render
+      // the color according to its magnitude when
+      // a feature's hover state is set to true
+      "circle-color": "#d32da0",
+      "circle-opacity": 0.5,
+    },
+  });
+
+  map.on("click", "locations", (e) => {
+    getChannels(e.features[0].properties.location_id, e.features[0].properties.title + ", " + e.features[0].properties.country,
+                e.features[0].properties.lng, e.features[0].properties.lat);
+    selectTopChannel();
+  });
+
+  map.on("moveend", () => {
+    if (ignoreMapMoveOnce) {
+      ignoreMapMoveOnce = false;
+      return;
+    }
+    // check if map center has moved significantly
+    // typically zoom-in/out will not change center
+    if (compareCoordinates(currentCenter, map.getCenter())) {    
+      clearTimeout(getChannelsDelayTimer);
+      currentZoom = map.getZoom()
+      if (currentZoom >= 5.0) { 
+        getChannelsDelayTimer = setTimeout(getChannelsAtCenter, 500);
+      }
+    }
+  });    
 });
 
-/******************************************************************************
- * Set Initial State
- ******************************************************************************/
+//////////////////////////////////////////////////////////////////////
+// player.js
+
+// playStream -  Create howler instance and play steam from channelId
+// @param {event} event - the DOM event on the selected channel
+var playStream = function (event) {
+  // Unload any active player
+  Howler.unload();
+
+  playingAnimation.style.display = "none";
+  loadingAnimation.style.display = "";
+  nowPlaying.textContent = "Loading: " + event.target.title;
+  locationDisplay.textContent = event.target.location;
+  
+  d = new Date();
+  stream_url =
+    "https://radio.garden/api/ara/content/listen/" +
+    event.currentTarget.channelId +
+    "/channel.mp3?" +
+    new Date().valueOf();
+  player = new Howl({
+    src: [stream_url],
+    html5: true,
+    autoplay: false,
+    volume: volume / 100,
+  });
+  // attach additional data to the player object      
+  player.channelId = event.target.channelId;
+  player.title = event.target.title;
+  player.location = event.target.location;
+  player.lng = event.target.lng;
+  player.lat = event.target.lat;
+  player.isFav = event.target.isFav;
+  toggleFavIcon(event.target.isFav > 0);
+
+  player.once(
+    "load",
+    function () {
+      loadingAnimation.style.display = "none";
+      playingAnimation.style.display = "";
+      nowPlaying.textContent = this.target.title;
+      locationDisplay.textContent = this.target.location;
+      playingAnimation.addEventListener("click", stopStream, false);
+      if (event.target.flyToOnSelect) {
+        ignoreMapMoveOnce = true;
+        map.flyTo({center: [player.lng, player.lat], curve: 1, zoom: 8, essential: true, speed: 0.7 })
+      }
+      player.play();
+    }.bind(event)
+  );
+
+  player.once(
+    "loaderror",
+    function () {
+      console.log("stream load error");
+      loadingAnimation.style.display = "none";
+      nowPlaying.textContent = "Offline: " + this.target.textContent;
+      playerActive = false;
+    }.bind(event)
+  );
+
+  player.once(
+    "play",
+    function () {
+      playerActive = true;
+    }.bind(event)
+  );
+
+};
+
+// stopStream - Stop streaming and set player to null
+var stopStream = function (event) {
+  if (player != null) {
+    player.unload();
+  }
+  player = null;
+  playingAnimation.style.display = "";
+  nowPlaying.textContent = "Tuning...";
+  locationDisplay.innerHTML = "&nbsp;";
+  playingAnimation.style.display = "none";
+  playerActive = false;
+  toggleFavIcon(false);
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//  Set Initial State
+displayOn();
 favIconFilled.style.display = 'None';
-// At the start we will be in mapMode
-selectIcon(zoomIconWrapper);
 // Initialize
 setVolume(volume);
-// Attach event handler for the top right icons when selected.
-topRightIconList.forEach(function (element) {
-  element.addEventListener("selected", function (event) {
-    if (event.target == zoomIconWrapper)
-      zoomMode = true;
-    if (event.target == volumeIconWrapper)
-      zoomMode = false;
-  });
-});
-
 favWrapper.addEventListener("click", handleFavoriteClick);
 favListWrapper.addEventListener("click", showFavorites);
 
@@ -639,4 +864,5 @@ const observer = new MutationObserver(function (mutationList, observer) {
     }
   }
 });
+
 observer.observe(channels, { attributes: false, childList: true, subtree: false });
