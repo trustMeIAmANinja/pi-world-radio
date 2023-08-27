@@ -1,7 +1,45 @@
 ///////////////////////////////////////////////////////////////////////////
+// CircularBuffer - https://stackoverflow.com/a/1583281
+
+function CircularBuffer(n) {
+  this._array = new Array();
+  this._size = n;
+}
+CircularBuffer.prototype.push = function(v) {
+  this._array.unshift(v);
+  if (this._array.length > this._size) {
+    this._array.pop()
+  }
+}
+CircularBuffer.prototype.get = function(i) {
+  if (i < 0 || i >= this._array.length) return undefined;
+  return this._array[i];
+}
+CircularBuffer.prototype.find = function(f) {
+  return this._array.find(f);
+}
+CircularBuffer.prototype.findIndex = function(f) {
+  return this._array.findIndex(f);
+}
+CircularBuffer.prototype.forEach = function(f) {
+  this._array.forEach(f);
+}
+CircularBuffer.prototype.toString = function() {
+  return this._array.toString();
+}
+CircularBuffer.prototype.splice = function(start, deleteCount) {
+  return this._array.splice(start, deleteCount);
+}
+CircularBuffer.prototype.load = function(stringData) {
+  this._array = JSON.parse(stringData)._array;
+}
+
+///////////////////////////////////////////////////////////////////////////
 // main.js
 
 var player = null;
+var staticPlayer = null;
+var staticPlayerTimeout = null;
 // const titleDisplay = document.getElementById('title');
 const channelsWrapper = document.getElementById("channels_wrapper");
 const channelsTitle = document.getElementById("channels_title");
@@ -18,6 +56,7 @@ const favWrapper = document.getElementById("fav_wrapper");
 const favListWrapper = document.getElementById("fav_list_wrapper");
 const favIcon = document.getElementById("fav_icon");
 const favIconFilled = document.getElementById("fav_icon_filled");
+const historyWrapper = document.getElementById("history_wrapper");
 
 var rapidClickCount = 0;
 var idleTime = 0;
@@ -38,11 +77,16 @@ var currentChannelIndex;
 var playerActive = false;
 var volume = 50;
 
+var historyList = new CircularBuffer(10);
+const historySearch = what => historyList.findIndex(element => element.channelId === what);
+
 // Mode toggle for Nav/Map
 var mapMode = true;
 var ignoreMapMoveOnce = false;
 
 var isFav = false;
+var favListMode = false;
+var historyListMode = false;
 
 var getChannelsDelayTimer;
 // Current Center
@@ -52,7 +96,7 @@ var currentLocationId = "";
 
 // Elements to circle through for key 'q'
 const navElements = new Array(
-  channelsWrapper, favWrapper, favListWrapper
+  channelsWrapper, favWrapper, favListWrapper, historyWrapper
 );
 var navElementFocusIndex = -1;
 
@@ -263,6 +307,8 @@ var clearChannelsList = function () {
   channelsWrapper.style.display = "none";
   channelListElems = [];
   currentChannelElem = null;
+  favListMode = false;
+  historyListMode = false;
 }
 
 // getChannels Get the list of radio streams for the location.
@@ -281,8 +327,7 @@ var getChannels = function (locationId, locationName, lng, lat) {
       console.log("getChannels: Received HTTP Status: " + status);
     } else {
       //console.log(response.data.content[0].items[0]);
-      channels.textContent = "";
-      channelsTitle.innerHTML = "";
+      clearChannelsList();
       channelsWrapper.style.display = "";
       var img = document.createElement("img");
       img.src = "/assets/img/signal-tower.png";
@@ -321,15 +366,46 @@ var toggleFavIcon = function(isFavorite) {
   }
 }
 
+// getChannelObject -
+var getChannelObject = function() {
+  var obj = new Object();
+  obj.channelId = player.channelId;
+  obj.title = player.title;
+  obj.location = player.location;
+  obj.lng = player.lng;
+  obj.lat = player.lat;
+  return obj;
+}
+
+
+// addToHistory -
+var addToHistory = function () {
+  if (player != null) {
+    obj = getChannelObject();
+    idx = historySearch(obj.channelId);
+    if (idx >= 0) {
+      historyList.splice(idx, 1);
+    }
+    historyList.push(obj);
+  }
+}
+
+var showHistory = function () {
+  clearChannelsList();
+  channelsWrapper.style.display = "";
+  channelsTitle.textContent = "History";
+  historyList.forEach(function (item) {
+    addChannelElement(item, item.channelId, item.location, item.lng, item.lat, true, true);
+  });
+  historyListMode = true;
+  navDropFocus();
+  navTakeFocus();
+}
+
 // addToFavorites - Add the currently playing channel to favorites
 var addToFavorites = function () {
   if (player != null) {
-    var obj = new Object();
-    obj.channelId = player.channelId;
-    obj.title = player.title;
-    obj.location = player.location;
-    obj.lng = player.lng;
-    obj.lat = player.lat;
+    obj = getChannelObject();
 
     postJSON("/addfavorite", obj, function (status, response) {
       if (status != null) {
@@ -375,8 +451,7 @@ var showFavorites = function () {
     } else {
       // console.log(response);
       currentLocationId = "";
-      channelsTitle.innerHTML = "";
-      channels.textContent = "";
+      clearChannelsList();
       channelsWrapper.style.display = "";
       channelsTitle.textContent = "Favorites";
 
@@ -388,6 +463,7 @@ var showFavorites = function () {
       response.forEach(function (item) {
         addChannelElement(item, item.channelId, item.location, item.lng, item.lat, true, true);
       });
+      favListMode = true;
       navDropFocus();
       navTakeFocus();
     }
@@ -470,6 +546,13 @@ var navigateChannelList = function(up) {
   }
 }
 
+var playStaticNoise = function () {
+  clearTimeout(staticPlayerTimeout);
+  staticPlayerTimeout = setTimeout(() => { staticPlayer.stop();}, 5 * 1000);
+  if (player == null && !staticPlayer.playing()) staticPlayer.play();
+}
+
+
 // handleUpdown - handle the event from the up/down rotary
 //                   if left is true, rotary was turned right/up, else was turned to left/down
 //
@@ -478,14 +561,15 @@ var navigateChannelList = function(up) {
 var handleUpDown = function(event, up) {
   if (mapMode) {
     if (up) {
-      map.panBy([0, -15], {animate: true, duration: 100});
+      map.panBy([0, -20], {animate: true, duration: 100});
     } else {
-      map.panBy([0, 15], {animate: true, duration: 100});
+      map.panBy([0, 20], {animate: true, duration: 100});
     }
   } else {
     if (document.activeElement == channelsWrapper) {
       event.stopPropagation();
       event.preventDefault();
+      if (!favListMode && !historyListMode) playStaticNoise();
     }
     navigateChannelList(up);
   }
@@ -498,10 +582,11 @@ var handleUpDown = function(event, up) {
 // @param {bool}  right  - true if turned to right, false if left.
 var handleLeftRight = function(event, right) {
   if (mapMode) {
+    playStaticNoise();
     if (right) {
-      map.panBy([15, 0], {animate: true, duration: 100});
+      map.panBy([30, 0], {animate: true, duration: 100});
     } else {
-      map.panBy([-15, 0], {animate: true, duration: 100});
+      map.panBy([-30, 0], {animate: true, duration: 100});
     }
   } else {
     /*if (document.activeElement == channelsWrapper) {
@@ -519,7 +604,7 @@ var handleLeftRight = function(event, right) {
 var handleClick = function (event) {
   // if fav-icon or fav-list-icon is highlighted, send click to them
   f = document.activeElement;
-  if (f == favWrapper || f == favListWrapper) {
+  if (f == favWrapper || f == favListWrapper || f == historyWrapper) {
     f.click();
     return
   }
@@ -539,11 +624,12 @@ var handleClick = function (event) {
 // @param {bool} zoomIn true: zoom in. false: zoom out.
 var zoomInOut = function (zoomIn) {
   if (mapMode) {
+    playStaticNoise();
     currentZoom = map.getZoom();
     if (zoomIn) 
-      map.easeTo({zoom: currentZoom + 0.75, speed: 0.5, duration: 1000})
+      map.easeTo({zoom: currentZoom + 1.0, speed: 0.5, duration: 1000})
     else
-      map.easeTo({zoom: currentZoom - 0.75, speed: 0.5, duration: 1000})
+      map.easeTo({zoom: currentZoom - 1.0, speed: 0.5, duration: 1000})
   }
 }
 
@@ -553,7 +639,7 @@ var incrementClickCount = function () {
   rapidClickCount++;
   rapidClickTimeout = setTimeout(() => {
     rapidClickCount = 0;
-  }, "500");
+  }, 500);
 }
 
 
@@ -712,6 +798,10 @@ map.on("load", () => {
     id: "locations",
     type: "circle",
     source: "locations",
+    layout: {
+      // Make the layer visible by default.
+      "visibility": "none"
+    },
     paint: {
       // The feature-state dependent circle-radius expression will render
       // the radius size according to its magnitude when
@@ -728,12 +818,14 @@ map.on("load", () => {
         20,
         40,
       ],
-      "circle-stroke-color": "#d32da0",
+      // "circle-stroke-color": "#d32da0",
+      "circle-stroke-color": "#b07126",
       "circle-stroke-width": 1,
       // The feature-state dependent circle-color expression will render
       // the color according to its magnitude when
       // a feature's hover state is set to true
-      "circle-color": "#d32da0",
+      // "circle-color": "#d32da0",
+      "circle-color": "#b08116",
       "circle-opacity": 0.5,
     },
   });
@@ -743,6 +835,17 @@ map.on("load", () => {
                 e.features[0].properties.lng, e.features[0].properties.lat);
     selectTopChannel();
   });
+
+  map.on("zoomend", () => {
+    zl = map.getZoom();
+    if (zl >= 5.0) {
+      map.setLayoutProperty("locations", "visibility", "visible");
+    } else {
+      map.setLayoutProperty("locations", "visibility", "none");
+      clearChannelsList();
+    }
+  });
+
 
   map.on("moveend", () => {
     if (ignoreMapMoveOnce) {
@@ -764,11 +867,20 @@ map.on("load", () => {
 //////////////////////////////////////////////////////////////////////
 // player.js
 
+staticPlayer = new Howl({
+  src: ["/assets/audio/static.mp3"],
+  html5: false,
+  autoplay: false,
+  loop: true,
+  volume: volume / 100,
+});
+
+
 // playStream -  Create howler instance and play steam from channelId
 // @param {event} event - the DOM event on the selected channel
 var playStream = function (event) {
   // Unload any active player
-  Howler.unload();
+  if (player != null) player.unload();
 
   playingAnimation.style.display = "none";
   loadingAnimation.style.display = "";
@@ -799,11 +911,13 @@ var playStream = function (event) {
   player.once(
     "load",
     function () {
+      staticPlayer.stop();
       loadingAnimation.style.display = "none";
       playingAnimation.style.display = "";
       nowPlaying.textContent = this.target.title;
       locationDisplay.textContent = this.target.location;
       playingAnimation.addEventListener("click", stopStream, false);
+      addToHistory();
       if (event.target.flyToOnSelect) {
         ignoreMapMoveOnce = true;
         map.flyTo({center: [player.lng, player.lat], curve: 1, zoom: 8, essential: true, speed: 0.7 })
@@ -819,6 +933,8 @@ var playStream = function (event) {
       loadingAnimation.style.display = "none";
       nowPlaying.textContent = "Offline: " + this.target.textContent;
       playerActive = false;
+      player.unload();
+      player = null;
     }.bind(event)
   );
 
@@ -853,6 +969,7 @@ favIconFilled.style.display = 'None';
 setVolume(volume);
 favWrapper.addEventListener("click", handleFavoriteClick);
 favListWrapper.addEventListener("click", showFavorites);
+historyWrapper.addEventListener("click", showHistory);
 
 // Watch for mutations to channels list
 const observer = new MutationObserver(function (mutationList, observer) {

@@ -147,32 +147,33 @@ body {
   height: 60px;
   border-radius: 30px;
   background: rgb(149 130 130 / 75%);
-  padding-top: 10px;
-  padding-left: 6px;
+  padding-top: 9px;
+  padding-left: 7px;
 }
 
-#volume_wrapper, #zoom_wrapper {
+#volume_wrapper {
   top: 10px;
+  padding-top: 10px;
 }
 
-#fav_wrapper, #fav_list_wrapper {
+#fav_wrapper, #fav_list_wrapper, #history_wrapper {
   top: calc(100vh - 70px); 
 }
 
 #fav_wrapper {
-  left: calc(50vw - 70px);
+  left: calc(50vw - 110px);
 }
 
 #fav_list_wrapper {
-  left: calc(50vw + 10px);
+  left: calc(50vw - 20px);
+}
+
+#history_wrapper {
+  left: calc(50vw + 70px);
 }
 
 #volume_wrapper {
   left: calc(100vw - 80px);
-}
-
-#zoom_wrapper {
-  left: calc(100vw - 150px);
 }
 
 .circle_icon {
