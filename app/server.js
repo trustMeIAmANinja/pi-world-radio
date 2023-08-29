@@ -49,6 +49,9 @@ fastify.register(fastifyStatic, {
   prefix: "/", // optional: default '/'
 });
 
+// GET: Get the list of channels for given location
+//      Also query the favorites table and mark any channels in the 
+//      the list that are alo in favorites
 fastify.get("/channels/:locationId", function (request, reply) {
   var locationId = request.params.locationId;
   var url = `https://radio.garden/api/ara/content/page/${locationId}/channels`;
@@ -90,6 +93,7 @@ fastify.get("/channels/:locationId", function (request, reply) {
     });
 });
 
+// POST: Add a channel to favorites
 fastify.post("/addfavorite", function (request, reply) {
   //console.log(request.body);
   var data = request.body;
@@ -118,12 +122,14 @@ fastify.post("/addfavorite", function (request, reply) {
 
 });
 
+// GET: Get the list of favorite channels
 fastify.get("/favorites", function (request, reply) {
   db.all("SELECT * from Favorites", (err, rows) => {
     reply.send(JSON.stringify(rows));
   });
 });
 
+// GET: Get the details for the favorite channel
 fastify.get("/favorite/:channelId", function (request, reply) {
   db.all(
     "SELECT * from Favorites where channelId=?",
@@ -134,7 +140,7 @@ fastify.get("/favorite/:channelId", function (request, reply) {
   );
 });
 
-
+// DELETE: Delete channelId from favorites list
 fastify.delete("/favorite/:channelId", function (request, reply) {
   db.run(
     `DELETE from Favorites where channelId=?`,
@@ -149,6 +155,7 @@ fastify.delete("/favorite/:channelId", function (request, reply) {
   );
 });
 
+// GET: Return HTTP 200 if the external URL is reachable else return 500
 fastify.get("/checkOnline", function (request, reply) { 
   var url = `http://gstatic.com/generate_204`;
   fetch(url).then(res => {
@@ -162,16 +169,19 @@ fastify.get("/checkOnline", function (request, reply) {
     });
 });
 
+// POST: Toggle the state of the GPIO pin for the relay
 fastify.post("/displayToggle", function (request, reply) {
   trigger.writeSync(trigger.readSync() ^ 1);
   reply.send({ message: "success", displayState: trigger.readSync() ^ 1});
 });
 
+// POST: Set the GPIO pin for the relay to LOW
 fastify.post("/displayOn", function (request, reply) {
   trigger.writeSync(0);
   reply.send({ message: "success", displayState: trigger.readSync() ^ 1});
 });
 
+// POST: Set the GPIO pin for the relay to HIGH
 fastify.post("/displayOff", function (request, reply) {
   trigger.writeSync(1);
   reply.send({ message: "success", displayState: trigger.readSync() ^ 1});
