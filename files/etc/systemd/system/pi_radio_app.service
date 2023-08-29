@@ -1,0 +1,15 @@
+[Unit]
+Description=Pi Radio App
+
+[Service]
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=1
+User=radio
+Group=nogroup
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+WorkingDirectory=/home/radio/pi-world-radio/app
+
+[Install]
+WantedBy=multi-user.target
