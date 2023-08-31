@@ -18,6 +18,11 @@ The rest of the docs contains a mixture of detailed instructions and rough notes
 how I built the Retro Pi World radio. The docs and the project is still very much a
 work in progress.
 
+## Source Code
+
+All the source code and related files for the build as well these docs are checked in to a github repo
+* https://trustmeiamaninja.github.io/pi-world-radio/
+
 #### Questions/Comments
 
 If you have any questions or need help, please open an
