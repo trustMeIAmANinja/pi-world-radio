@@ -25,10 +25,8 @@ start_chromium_kiosk () {
 
 start_chromium_kiosk
 
-# At any point to break-out and end the session add 
-# the ~/.nokiosk file.
+# At any point to break-out and end the session add the ~/.nokiosk file.
 while [ ! -f ~/.nokiosk ]; do
-  # xdotool keydown ctrl+Tab; xdotool keyup ctrl+Tab;
   xdotool keydown x; xdotool keyup x;
   sleep 5
     
@@ -41,5 +39,4 @@ while [ ! -f ~/.nokiosk ]; do
   fi
 done
 
-#pkill ddchromium
 killall /usr/lib/chromium-browser/chromium-browser
