@@ -8,6 +8,9 @@ def get_feature(d):
 
 # Download a fresh copy of the data from radio.garden with
 # curl https://radio.garden/api/ara/content/places > radio.garden.locations.json
+# 
+# Save the output from this script to geo_json.min.json and replace the one in
+# the public/assets/js directory
 
 # open the radio.garden json
 with open("radio.garden.locations.json") as FP:
