@@ -4,6 +4,12 @@ This is the documentation on how I built the Raspberry Pi Retro World Radio.
 
 ![logo](assets/img/retro_pi_world_radio_hero.jpg ':size=50%')
 
+<p><center>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/S_21MZz6pgE?rel=0" title="YouTube video player"
+       frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope" allowfullscreen>
+</iframe>
+</center></p>
+
 ## Inspiration
 
 The original idea for this project came from this project on Hackaday -
