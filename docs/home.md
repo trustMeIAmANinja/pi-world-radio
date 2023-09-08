@@ -27,7 +27,7 @@ work in progress.
 ## Source Code
 
 All the source code and related files for the build as well these docs are checked in to a github repo
-* https://trustmeiamaninja.github.io/pi-world-radio/
+* [Github/trustMeIAmANinja/pi-world-radio](https://github.com/trustMeIAmANinja/pi-world-radio ':target=_blank')
 
 #### Questions/Comments
 
