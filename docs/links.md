@@ -13,3 +13,6 @@ A collection of websites and other resources used.
     - [Raspiaudio Pinout](https://pinout.xyz/pinout/raspiaudio_audio_speakers_mic ':target=_blank')
  - [Elecrow Wiki page for the 5" display](https://elecrow.com/wiki/index.php?title=HDMI_Interface_5_Inch_800x480_TFT_Display ':target=_blank')
  - [Minimal Install for running Chromium in Kiosk Mode by Sylvain Durand](https://sylvaindurand.org/launch-chromium-in-kiosk-mode/ ':target=_blank')
+ - [Flaticons.Net](https://flaticons.net/ ':target=_blank') - Most of the icons used in the interface are from here
+ - [Pixaby/@wixin_56k](https://pixabay.com/users/wixin_56k-9838171/ ':target=_blank') - Author of the Vintage Radio illustration on the docs site
+ - [Printables/Unknown Author](https://printables.com ':target=_blank') - Source of the Raspberry Pi4 illustraion on the docs site
