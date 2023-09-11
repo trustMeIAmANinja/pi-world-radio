@@ -694,7 +694,8 @@ window.addEventListener("keydown", function (event) {
       zoomInOut(false);
       break;
     case "q":
-      switchMapMode();
+      // switchMapMode();
+      handleClick(event);
       break;
     case "p":
       handleClick(event);
@@ -718,6 +719,7 @@ window.addEventListener("keydown", function (event) {
       } else {
         // increment to track Rapid click
         incrementClickCount();
+        switchMapMode();
       }
       break;
     case "t":
