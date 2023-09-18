@@ -57,6 +57,10 @@ const favListWrapper = document.getElementById("fav_list_wrapper");
 const favIcon = document.getElementById("fav_icon");
 const favIconFilled = document.getElementById("fav_icon_filled");
 const historyWrapper = document.getElementById("history_wrapper");
+const sysinfoIconWrapper = document.getElementById("sysinfo_icon_wrapper");
+
+const sysinfoWrapper = document.getElementById("sysinfo_wrapper");
+const sysinfo = document.getElementById("sysinfo");
 
 var rapidClickCount = 0;
 var idleTime = 0;
@@ -69,7 +73,7 @@ var idleInterval = setInterval(function() { incrementIdleTime() }, 60 * 1000); /
 channelsWrapper.style.display = "none";
 playingAnimation.style.display = "none";
 loadingAnimation.style.display = "none";
-
+sysinfoWrapper.style.display = "none";
 // global mutable Vars
 var channelListElems = [];
 var currentChannelElem = null;
@@ -96,7 +100,8 @@ var currentLocationId = "";
 
 // Elements to circle through for key 'q'
 const navElements = new Array(
-  channelsWrapper, favWrapper, favListWrapper, historyWrapper
+  channelsWrapper, favWrapper, favListWrapper, historyWrapper, sysinfoIconWrapper,
+  reload_btn, restart_btn, shutdown_btn
 );
 var navElementFocusIndex = -1;
 
@@ -243,7 +248,6 @@ var displayOn = function() {
 // incrementIdleTime - tick up the idle counter by 1
 var incrementIdleTime = function () {
   idleTime++;
-  console.log(`Idle for ${idleTime} minutes`);
   if (idleTime >= 5 && displayState == 1) displayOff();
 }
 
@@ -328,6 +332,7 @@ var getChannels = function (locationId, locationName, lng, lat) {
     } else {
       //console.log(response.data.content[0].items[0]);
       clearChannelsList();
+      clearSysinfo();
       channelsWrapper.style.display = "";
       var img = document.createElement("img");
       img.src = "/assets/img/signal-tower.png";
@@ -341,6 +346,95 @@ var getChannels = function (locationId, locationName, lng, lat) {
         channelId = item.href.split("/").splice(-1)[0];
         addChannelElement(item, channelId, locationName, lng, lat);
       });
+    }
+  });
+}
+
+// clearSysinfo - clear and hide the Sysinfo box
+var clearSysinfo = function () {
+  sysinfo.textContent = "";
+  sysinfoWrapper.style.display = "none";
+}
+
+// addSysinfoItem - add a row to the Sysinfo box
+var addSysinfoItem = function (itemName, itemValue) {
+  item = document.createElement("div");
+  item.classList.add("sysinfo_item");
+
+  nameSpan = document.createElement("span");
+  nameSpan.classList.add("sysinfo_name");
+  nameSpan.textContent = itemName;
+  item.appendChild(nameSpan);
+
+  value = document.createElement("span");
+  value.classList.add("sysinfo_value");
+  value.innerHTML = itemValue;
+  item.appendChild(value);
+  sysinfo.appendChild(item);
+  sysinfoWrapper.style.display = "block";
+}
+
+// showSysinfo - Show the system info box
+var showSysinfo = function() {
+  let sysinfo_url = '/systemInfo';
+  getJSON(sysinfo_url, function (status, response) {
+    if (status != null) {
+      console.log("getSysinfo: Received HTTP Status: " + status); 
+    } else {
+      clearSysinfo();
+      for (const key in response.netInfo) {
+        addSysinfoItem(`Net:${key}`, response.netInfo[key]);
+      }
+      for (const key in response.sysInfo) {
+        addSysinfoItem(key, response.sysInfo[key]);
+      }
+    }
+  });
+}
+
+// showConfirmationModal - show the confirmation modal box
+var showConfirmationModal = function (message, yesCb) {
+  modal_text.innerHTML = `${this.innerHTML}?`;
+  navDropFocus();
+  clearSysinfo();
+  clearChannelsList()
+  confirmation_modal.style.display = "block";
+  cancel_btn.focus();
+  // Brute-force but effective to clear existing event handlers
+  // https://stackoverflow.com/a/39026635
+  yes_btn.outerHTML = yes_btn.outerHTML;
+  yes_btn.addEventListener("click", function() {
+    cb = this.getAttribute("cb");
+    window[cb]();
+    hideConfirmationModal();
+  }.bind(this));
+}
+
+// hideConfirmationModal - hide the confirmation modal box
+var hideConfirmationModal = function () {
+  confirmation_modal.style.display = "none";
+  navSwitchElement(false);
+}
+
+// reload - reload the current page
+var reload = function () {
+  location.reload();
+}
+
+// requestRestart - send request to backend to restart the host
+var requestRestart = function () {
+  postEmpty("/restart", function (status, response) {
+    if (status != null) {
+      console.log("restart: Received HTTP Status: " + status);
+    }
+  });
+}
+
+// requestShutdown - send request to backend to shutdown the host
+var requestShutdown = function () {
+  postEmpty("/shutdown", function (status, response) {
+    if (status != null) {
+      console.log("restart: Received HTTP Status: " + status);
     }
   });
 }
@@ -394,6 +488,7 @@ var addToHistory = function () {
 // showHistory - show the history of channels in the channels list box
 var showHistory = function () {
   clearChannelsList();
+  clearSysinfo();
   channelsWrapper.style.display = "";
   channelsTitle.textContent = "History";
   historyList.forEach(function (item) {
@@ -454,6 +549,7 @@ var showFavorites = function () {
       // console.log(response);
       currentLocationId = "";
       clearChannelsList();
+      clearSysinfo();
       channelsWrapper.style.display = "";
       channelsTitle.textContent = "Favorites";
 
@@ -492,13 +588,12 @@ navSwitchElement = function(next) {
     navElementFocusIndex++;
   else
     navElementFocusIndex--;
+  navLength = isVisible(sysinfoWrapper) ? navElements.length : navElements.length - 3;
 
-  if (navElementFocusIndex >= navElements.length) {
-    navElementFocusIndex = navElements.length - 1;
-    return
+  if (navElementFocusIndex >= navLength) {
+    navElementFocusIndex = navLength - 1;
   } else if (navElementFocusIndex < 0) {
     navElementFocusIndex = 0;
-    return
   }
   // navElements[navElementFocusIndex].dispatchEvent(event);
   navElements[navElementFocusIndex].focus();
@@ -597,7 +692,15 @@ var handleLeftRight = function(event, right) {
       event.stopPropagation();
       event.preventDefault();
     }*/
-    navSwitchElement(right);
+    if (isVisible(confirmation_modal)) {
+      if (cancel_btn == document.activeElement) {
+        yes_btn.focus();
+      } else {
+        cancel_btn.focus();
+      }
+    } else {
+      navSwitchElement(right);
+    }
   }
 }
 
@@ -608,10 +711,15 @@ var handleLeftRight = function(event, right) {
 var handleClick = function (event) {
   // if fav-icon or fav-list-icon is highlighted, send click to them
   f = document.activeElement;
-  if (f == favWrapper || f == favListWrapper || f == historyWrapper) {
+  if (f.classList.contains('square_btn') || f.classList.contains('icon_wrapper')) {
     f.click();
-    return
+    return;
   }
+  //if (f == favWrapper || f == favListWrapper || f == historyWrapper || f == sysinfoIconWrapper
+  //    || f == reload_btn || f == restart_btn || f == shutdown_btn) {
+  //  f.click();
+  //  return
+  //}
 
   // else if player is active, send click to player
   // and/or if currentChannelElem is not null, send click to it.
@@ -642,6 +750,7 @@ var switchMapMode = function () {
   mapMode = !mapMode;
   if (mapMode) {
     navDropFocus();
+    clearSysinfo();
     crosshair.style.display = 'block';
   } else {
     navTakeFocus();
@@ -702,6 +811,7 @@ window.addEventListener("keydown", function (event) {
       break;
     case "n":
       clearChannelsList();
+      clearSysinfo();
       // Switch to map mode if not in map mode
       if (!mapMode) switchMapMode();
       // reset currentCenter
@@ -790,6 +900,7 @@ var getChannelsAtCenter = function () {
     }
   } else {
     clearChannelsList();
+    clearSysinfo();
     currentLocationId = "";
   }
   currentCenter = map.getCenter();
@@ -980,6 +1091,16 @@ setVolume(volume);
 favWrapper.addEventListener("click", handleFavoriteClick);
 favListWrapper.addEventListener("click", showFavorites);
 historyWrapper.addEventListener("click", showHistory);
+sysinfoIconWrapper.addEventListener("click", showSysinfo);
+
+reload_btn.addEventListener("click", showConfirmationModal);
+restart_btn.addEventListener("click", showConfirmationModal);
+shutdown_btn.addEventListener("click", showConfirmationModal);
+cancel_btn.addEventListener("click", hideConfirmationModal);
+// Add some attributes
+reload_btn.setAttribute("cb", "reload");
+restart_btn.setAttribute("cb", "requestRestart");
+shutdown_btn.setAttribute("cb", "requestShutdown");
 
 // Watch for mutations to channels list
 const observer = new MutationObserver(function (mutationList, observer) {

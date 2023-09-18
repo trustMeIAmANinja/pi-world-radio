@@ -4,9 +4,14 @@
 
 const fastify = require('fastify')({logger: true})
 const path = require("path");
+const exec = require('child_process').exec;
 const fetch = require("node-fetch");
 const fs = require("fs");
 const fastifyStatic = require('@fastify/static')
+const os = require('os');
+const osUtils = require('os-utils');
+const { measureCPU } = require('rpi_measure_temp')
+const spawn = require('child_process').spawn;
 const sqlite3 = require("sqlite3").verbose();
 const Gpio = require('onoff').Gpio;
 
@@ -185,6 +190,51 @@ fastify.post("/displayOn", function (request, reply) {
 fastify.post("/displayOff", function (request, reply) {
   trigger.writeSync(1);
   reply.send({ message: "success", displayState: trigger.readSync() ^ 1});
+});
+
+// POST: Restart host
+fastify.post("/restart", function (request, reply) {
+  exec('/bin/sudo /sbin/shutdown -r now', function(error, stdout, stderr) {
+    console.log(stdout);
+    console.log(stderr);
+  });
+});
+
+// POST: shutdown host
+fastify.post("/shutdown", function (request, reply) {
+  exec('/bin/sudo /sbin/shutdown now', function(error, stdout, stderr) {
+    console.log(stdout);
+    console.log(stderr);
+  });
+});
+
+// GET: System Info
+fastify.get("/systemInfo", function (request, reply) {
+  const nets = os.networkInterfaces();
+  const results = Object.create(null);
+  const netInfo = Object.create(null);
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      const familyV4Value = typeof net.family === 'string' ? 'IPv4' : 4
+      if (net.family === familyV4Value && !net.internal) {
+        if (!netInfo[name]) {
+           netInfo[name] = "";
+        }
+        netInfo[name] = net.address;
+      }
+    }
+  }
+  results['netInfo'] = netInfo
+  // collect system info
+  const sysInfo = Object.create(null);
+  results['sysInfo'] = sysInfo
+  sysInfo['CPU Load'] = osUtils.loadavg(1);
+
+  (async () => {
+    data =  await measureCPU();
+    sysInfo['CPU Temp'] = `${Math.round(data['celsius'])} &deg;C`;
+    reply.send(JSON.stringify(results));
+  })();
 });
 
 // Run the server and report out to the logs

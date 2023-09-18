@@ -15,6 +15,7 @@ html {
 body {
   margin: 0;
   padding: 0;
+  font-family: 'EB Garamond', 'Goudy Bookletter 1911', cursive, serif;
 }
 
 .left {
@@ -63,7 +64,6 @@ body {
   color: #ffffff;
   background-color: rgb(149 130 130 / 75%);
   border-radius: 10px;
-  font-family: 'Goudy Bookletter 1911', cursive, serif;
   font-size: 24px;
   top: 0;
 }
@@ -84,22 +84,34 @@ body {
   height: fit-content;
 }
 
-#channels_wrapper:focus, .icon_wrapper:focus, .icon_focus {
+#sysinfo_wrapper {
+  display: None;
+  position: absolute;
+  top: 90px;
+  left: calc(100vw - 325px);
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+  width: 40%;
+  max-width: 315px;
+  height: fit-content;
+}
+
+#channels_wrapper:focus, #sysinfo_wrapper:focus, .icon_wrapper:focus, .icon_focus, .square_btn:focus {
   outline: none;
   box-shadow: 0px 0px 7px 2px #c58d0b;
 }
 
-#channels_title {
+#channels_title, #sysinfo_title {
   padding: 5px 10px;
   width: 100%;
-  font-family: 'Goudy Bookletter 1911', cursive, serif;
   font-size: 24px;
   color: #ffffff;
   background-color: rgb(149 130 130 / 75%);
   border-radius: 10px 10px 0 0;
 }
 
-#channels {
+#channels, #sysinfo, #sysinfo_actions, #confirmation_modal {
   max-height: 200px;
   padding: 0px;
   width: 100%;
@@ -107,10 +119,29 @@ body {
   background-color: rgb(255 255 255 / 90%);
   border-radius: 0px 0px 10px 10px;
   overflow: auto;
-  font-family: 'Goudy Bookletter 1911', cursive, serif;
   font-size: 20px;
 }
-.channel {
+
+#sysinfo {
+  border-radius: 0px;
+}
+
+#sysinfo_actions {
+  padding: 10px;
+}
+
+#confirmation_modal {
+  display: None;
+  padding: 15px;
+  border-radius: 10px;
+  width: 200px;
+  height: 100px;
+  position: absolute;
+  top: calc(50vh - 50px);
+  left: calc(50vw - 100px)
+}
+
+.channel, .sysinfo_item {
   padding: 3px 8px;
 }
 .channel:hover, .channel_highlight {
@@ -131,6 +162,12 @@ body {
   height: 30px;
   vertical-align: top;
   filter: invert(1);
+}
+
+.sysinfo_name {
+  width: 50%;
+  display: flex;
+  float: left;
 }
 
 #now-playing {
@@ -156,20 +193,24 @@ body {
   padding-top: 10px;
 }
 
-#fav_wrapper, #fav_list_wrapper, #history_wrapper {
+#fav_wrapper, #fav_list_wrapper, #history_wrapper, #sysinfo_icon_wrapper {
   top: calc(100vh - 70px); 
 }
 
 #fav_wrapper {
-  left: calc(50vw - 110px);
+  left: calc(50vw - 165px);
 }
 
 #fav_list_wrapper {
-  left: calc(50vw - 20px);
+  left: calc(50vw - 75px);
 }
 
 #history_wrapper {
-  left: calc(50vw + 70px);
+  left: calc(50vw + 15px);
+}
+
+#sysinfo_icon_wrapper {
+  left: calc(50vw + 105px);
 }
 
 #volume_wrapper {
@@ -187,6 +228,24 @@ body {
   font-size: 14px;
   float: right;
 }
+
+/****************************
+From: https://saruwakakun.com/en/css3-buttons
+*****************************/
+.square_btn {
+  position: relative;
+  display: inline-block;
+  padding: 0.25em 0.5em;
+  margin: 0 5px;
+  text-decoration: none;
+  color: #FFF;
+  background: rgb(149 130 130);
+  border: solid 1px rgb(99 91 91);
+  border-radius: 5px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}
+
 /*****************************
 The following CSS-only loading animations are from https://codepen.io/mjcabangon/pen/pKRaZQ
 ******************************/

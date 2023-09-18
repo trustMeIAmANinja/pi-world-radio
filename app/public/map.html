@@ -11,6 +11,10 @@
     <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
     <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet"/>
     <style>
+      @font-face {
+        font-family: "EB Garamond";
+        src: url("/assets/fonts/EBGaramond-Regular.ttf") format("truetype");
+      }
     </style>
   </head>
   <body>
@@ -49,6 +53,17 @@
       <div id="channels" tabindex="-1"></div>
     </div>
 
+    <div id="sysinfo_wrapper" tabindex="2">
+      <div id="sysinfo_title" tabindex="-1">System Info</div>
+      <div id="sysinfo" tabindex="-1">
+      </div>
+      <div id="sysinfo_actions" tabindex="-1">
+        <a href="#" id="reload_btn" class="square_btn">Reload</a>
+        <a href="#" id="restart_btn" class="square_btn">Restart</a>
+        <a href="#" id="shutdown_btn" class="square_btn">Shutdown</a>
+      </div>
+    </div>
+
     <div id="volume_wrapper" class="icon_wrapper" tabindex="2">
       
       <img id="volume_icon_0" class="circle_icon" style="display: none" src="/assets/img/Speaker-Volume-0.png">
@@ -70,10 +85,22 @@
       <img id="fav_list_icon" class="circle_icon" src="/assets/img/fav-list-icon.png">
     </div>
 
-     <div id="history_wrapper" class="icon_wrapper" tabindex="2">
+    <div id="history_wrapper" class="icon_wrapper" tabindex="2">
       <img id="history_icon" class="circle_icon" src="/assets/img/history-icon.png">
     </div>
-    
+
+    <div id="sysinfo_icon_wrapper" class="icon_wrapper" tabindex="2">
+      <img id="sysinfo_icon" class="circle_icon" src="/assets/img/sysinfo-icon.png">
+    </div>
+
+    <div id="confirmation_modal" tabindex="2">
+      <div id="modal_content" tabindex="-1">
+        <span id="modal_text">Reload?</span><br/>
+        <a href="#" id="yes_btn" class="square_btn">Yes</a>
+        <a href="#" id="cancel_btn" class="square_btn">Cancel</a>
+      </div>
+    </div> 
+
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"
       integrity="sha512-6+YN/9o9BWrk6wSfGxQGpt3EUK6XeHi6yeHV+TYD2GR0Sj/cggRpXr1BrAQf0as6XslxomMUxXp2vIl+fv0QRA=="
