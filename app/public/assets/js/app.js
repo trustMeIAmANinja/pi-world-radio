@@ -392,6 +392,11 @@ var showSysinfo = function() {
   });
 }
 
+// showHideSysinfo - toggle the visiblity of system info box
+var showHideSysinfo = function () {
+  isVisible(sysinfoWrapper) ? clearSysinfo() : showSysinfo();
+}
+
 // showConfirmationModal - show the confirmation modal box
 var showConfirmationModal = function (message, yesCb) {
   modal_text.innerHTML = `${this.innerHTML}?`;
@@ -1091,7 +1096,7 @@ setVolume(volume);
 favWrapper.addEventListener("click", handleFavoriteClick);
 favListWrapper.addEventListener("click", showFavorites);
 historyWrapper.addEventListener("click", showHistory);
-sysinfoIconWrapper.addEventListener("click", showSysinfo);
+sysinfoIconWrapper.addEventListener("click", showHideSysinfo);
 
 reload_btn.addEventListener("click", showConfirmationModal);
 restart_btn.addEventListener("click", showConfirmationModal);
