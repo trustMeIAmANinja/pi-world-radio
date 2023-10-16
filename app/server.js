@@ -59,14 +59,18 @@ fastify.register(fastifyStatic, {
 //      the list that are alo in favorites
 fastify.get("/channels/:locationId", function (request, reply) {
   var locationId = request.params.locationId;
-  var url = `https://radio.garden/api/ara/content/page/${locationId}/channels`;
-  fetch(url)
+  // var url = `https://radio.garden/api/ara/content/page/${locationId}/channels`;
+  var url = `https://radio.garden/api/ara/content/secure/page/${locationId}/channels`
+  headers = {
+  'Referer': 'https://radio.garden',
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36'
+  }
+  fetch(url, {headers: headers})
     .then((res) => res.json())
     .then((json) => {
-      //console.log("hello");
       let channelIds = [];
       json.data.content[0].items.forEach(function (item) {
-        channelIds.push(item.href.split("/").splice(-1)[0]);
+        channelIds.push(item.page.url.split("/").splice(-1)[0]);
       });
       let dbRows = [];
 
@@ -85,11 +89,11 @@ fastify.get("/channels/:locationId", function (request, reply) {
           rows.forEach(function (row) { channelIdLookup.add(row.channelId)});
 
           json.data.content[0].items.forEach(function (item) {
-            let channelId = item.href.split("/").splice(-1)[0]
+            let channelId = item.page.url.split("/").splice(-1)[0]
             if (channelIdLookup.has(channelId)) {
-              item.is_favorite = 1;
+              item.page.is_favorite = 1;
             } else {
-              item.is_favorite = 0;
+              item.page.is_favorite = 0;
             }
           })
           reply.send(json);

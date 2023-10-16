@@ -343,8 +343,8 @@ var getChannels = function (locationId, locationName, lng, lat) {
       channelsTitle.append(span);
 
       response.data.content[0].items.forEach(function (item) {
-        channelId = item.href.split("/").splice(-1)[0];
-        addChannelElement(item, channelId, locationName, lng, lat);
+        channelId = item.page.url.split("/").splice(-1)[0];
+        addChannelElement(item.page, channelId, locationName, lng, lat);
       });
     }
   });
@@ -1010,6 +1010,7 @@ var playStream = function (event) {
 
   playingAnimation.style.display = "none";
   loadingAnimation.style.display = "";
+  console.log(event.target);
   nowPlaying.textContent = "Loading: " + event.target.title;
   locationDisplay.textContent = event.target.location;
   
